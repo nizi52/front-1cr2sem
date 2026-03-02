@@ -2,6 +2,8 @@ const express = require('express');
 const { nanoid } = require('nanoid');
 const cors = require('cors');
 const { deprecations } = require('sass');
+const swaggerJsdoc = require('swagger-jsdoc')
+const swaggerUi = require('swagger-ui-express')
 const app = express();
 const port = 3000;
 
@@ -118,6 +120,28 @@ app.use((req, res, next) => {
     });
     next();
 });
+
+const swaggerOptions = {
+    definiotion: {
+        openapi: '3.0.0',
+        info: {
+            title: '1.0.0',
+            description: 'REST API для управления товарами в интернет-магазине',
+        },
+        servers: [
+            {
+                url: `http://localhost:${port}`,
+                description: 'Локальный сервер',
+            },
+        ],
+    },
+    apis: ['./server.js']
+};
+
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi, swaggerUi.setup(swaggerSpec));
+
+
 
 function findProductOr404(id, res) {
     const product = products.find(p => p.id === id);
