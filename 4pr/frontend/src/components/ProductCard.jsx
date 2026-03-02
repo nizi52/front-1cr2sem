@@ -4,7 +4,7 @@ export default function ProductCard({ product, onEdit, onDelete }) {
   return (
     <div className="productCard">
       <div className="productImage">
-        <img src={product.img} alt={product.name} />
+        <img src={product.image} alt={product.name} />
       </div>
       
       <div className="productContent">
