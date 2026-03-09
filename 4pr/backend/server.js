@@ -9,7 +9,108 @@ const app = express();
 const port = 3000;
 
 let users = [];
-let products = [];
+let products = [
+    {
+        id: nanoid(6),
+        name: 'iPhone 17 про',
+        category: 'Смартфон',
+        description: 'Флагманский смартфон от Apple с титановым корпусом',
+        price: 89990,
+        stock: 15,
+        rating: 4.8,
+        image: '/image/apple17.png'
+    },
+    {
+        id: nanoid(6),
+        name: 'Samsung Galaxy S24 Ultra',
+        category: 'Смартфон',
+        description: 'Премиальный Android-смартфон с S Pen и камерой 200 МП',
+        price: 94990,
+        stock: 12,
+        rating: 4.9,
+        image: '/image/samsung.png'
+    },
+    {
+        id: nanoid(6),
+        name: 'MacBook Pro 16',
+        category: 'Ноутбуки',
+        description: 'Профессиональный ноутбук с чипом M3 Pro',
+        price: 249990,
+        stock: 5,
+        rating: 4.8,
+        image: '/image/mac.png'
+    },
+    {
+        id: nanoid(6),
+        name: 'Dell XPS 15',
+        category: 'Ноутбуки',
+        description: 'Мощный ноутбук с Intel Core i7',
+        price: 159990,
+        stock: 10,
+        rating: 4.6,
+        image: '/image/dell.jpg'
+    },
+    {
+        id: nanoid(6),
+        name: 'iPad Air M2',
+        category: 'Планшеты',
+        description: 'Легкий и мощный планшет с чипом M2',
+        price: 64990,
+        stock: 20,
+        rating: 4.8,
+        image: '/image/ipad.jpg'
+    },
+    {
+        id: nanoid(6),
+        name: 'Sony WH-1000XM5',
+        category: 'Наушники',
+        description: 'Беспроводные наушники с шумоподавлением',
+        price: 29990,
+        stock: 25,
+        rating: 4.8,
+        image: '/image/sonywh.jpg'
+    },
+    {
+        id: nanoid(6),
+        name: 'AirPods Pro 2',
+        category: 'Наушники',
+        description: 'TWS-наушники от Apple',
+        price: 22990,
+        stock: 30,
+        rating: 4.8,
+        image: '/image/pods.png'
+    },
+    {
+        id: nanoid(6),
+        name: 'Apple Watch Series 9',
+        category: 'Умные часы',
+        description: 'Смарт-часы с ярким дисплеем',
+        price: 39990,
+        stock: 18,
+        rating: 4.8,
+        image: '/image/watch.jpg'
+    },
+    {
+        id: nanoid(6),
+        name: 'Samsung Galaxy Watch 6',
+        category: 'Умные часы',
+        description: 'Умные часы с мониторингом здоровья',
+        price: 27990,
+        stock: 15,
+        rating: 4.8,
+        image: '/image/samwatch.png'
+    },
+    {
+        id: nanoid(6),
+        name: 'Sony PlayStation 5',
+        category: 'Игровые консоли',
+        description: 'Игровая консоль нового поколения',
+        price: 54990,
+        stock: 7,
+        rating: 5.0,
+        image: '/image/ps5.png'
+    },
+];
 
 app.use(express.json());
 app.use(cors({
