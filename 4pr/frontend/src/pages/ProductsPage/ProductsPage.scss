@@ -398,7 +398,7 @@ $successBg: rgba(34, 197, 94, 0.12);
   padding: 10px 14px;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
+  background: black;
   color: inherit;
   outline: none;
   font-size: 14px;
@@ -406,7 +406,7 @@ $successBg: rgba(34, 197, 94, 0.12);
 
   &:focus {
     border-color: rgba(99, 102, 241, 0.5);
-    background: rgba(255, 255, 255, 0.06);
+    background: black;
   }
 
   &.textarea {
@@ -439,6 +439,7 @@ $successBg: rgba(34, 197, 94, 0.12);
   }
 
   .filterSelect {
+    background: black;
     width: 100%;
   }
 
