@@ -4,9 +4,14 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const jwt = require('jsonwebtoken');
+const { Component, use } = require('react');
 
 const app = express();
 const port = 3000;
+
+const JWT_SECRET = 'your_secret_key_change';
+const ACCESS_EXPIRES_IN = '15m'
 
 let users = [];
 let products = [
@@ -134,14 +139,23 @@ const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'API интернет-магазина с аутентификацией',
+            title: 'API с JWT аутентификацией',
             version: '1.0.0',
-            description: 'REST API с регистрацией, входом и управлением товарами',
+            description: 'REST API с jwt, входом и управлением товарами',
         },
-        servers: [{
-            url: `http://localhost:${port}`,
-            description: 'Локальный сервер',
-        }],
+        servers: [{ url: `http://localhost:${port}` }],
+        Components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                }
+            }
+        },
+        security: [{
+            bearerAuth: []
+        }]
     },
     apis: ['./server.js'],
 };
@@ -171,6 +185,57 @@ function findProductOr404(id, res) {
     }
     return product;
 }
+
+function authMiddleware(req, res, next) {
+    const header = req.headers.authorization || '';
+    const [scheme, token] = header.split(' ');
+    if (scheme !== 'Bearer' || !token) {
+        return res.status(401).json({
+            error: 'Missing or invalid Authorization header'
+        });
+    }
+    try {
+        const payload = jwt.verify(tokenm, JWT_SECRET);
+        req.user = peyload;
+        next();
+    } catch (err) {
+        return res.status(401).json({
+            error: 'Invalid or expired token'
+        });
+    }
+}
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Регистрация пользователя
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - first_name
+ *               - last_name
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               first_name:
+ *                 type: string
+ *               last_name:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Пользователь зарегистрирован
+ */
+
 
 
 /**
@@ -390,14 +455,46 @@ app.post('/api/auth/login', async (req, res) => {
         return res.status(401).json({ error: 'Invalid password' });
     }
 
-    // Успешный вход
-    const { hashedPassword, ...userWithoutPassword } = user;
-    res.status(200).json({
-        login: true,
-        user: userWithoutPassword
-    });
+    const accessToken = jwt.sign(
+        {
+            sub: user.id,
+            email: user.email,
+            first_name: user.first_name,
+            last_name: user.last_name
+        },
+        JWT_SECRET,
+        {
+            expiresIn: ACCESS_EXPIRES_IN
+        }
+    );
+
+    res.json({ accessToken });
 });
 
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Получить данные текущего пользователя (защищённый маршрут)
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Данные пользователя
+ *       401:
+ *         description: Не авторизован
+ */
+
+app.get('/api/auth/me', authMiddleware, (req, res) => {
+    const useeId = req.user.sub;
+    const user = users.find(u => u.id === userId);
+    if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+    const { hashedPassword, ...userWithoutPassword } = user;
+    req.json(userWithoutPassword);
+});
 
 /**
  * @swagger
@@ -566,6 +663,7 @@ app.put('/api/products/:id', (req, res) => {
     product.category = category.trim();
     product.description = description.trim();
     product.price = Number(price);
+    if (image !== undefined) product.image = image;
 
     res.json(product);
 });
