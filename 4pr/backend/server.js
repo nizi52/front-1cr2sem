@@ -5,13 +5,97 @@ const cors = require('cors');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const jwt = require('jsonwebtoken');
-const { Component, use } = require('react');
 
 const app = express();
 const port = 3000;
 
-const JWT_SECRET = 'your_secret_key_change';
-const ACCESS_EXPIRES_IN = '15m'
+const ACCESS_SECRET = 'access_secret';
+const REFRESH_SECRET = 'refresh_secret';
+
+const ACCESS_EXPIRES_IN = '15m';
+const REFRESH_EXPIRES_IN = '1d';
+
+const refreshTokens = new Set();
+function generateAccessToken(user){
+    return jwt.sign(
+        {
+            sub: user.id,
+            username: user.username,
+        },
+        ACCESS_SECRET,
+        {
+            expiresIn: ACCESS_EXPIRES_IN
+        }
+    );
+}
+
+function generateRefreshToken(user){
+    return jwt.sign(
+        {
+            sub: user.id,
+            email: user.username,
+            first_name: user.first_name,
+            last_name: user.last_name
+        },
+        REFRESH_SECRET,
+        {
+            expiresIn: REFRESH_EXPIRES_IN
+        }
+    );
+}
+
+app.post('/api/auth/refresh', (req, res) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+        return res.status(400).json({ error: 'refreshToken if required' });
+    } 
+    if (!refreshTokens.has(refreshToken)) {
+        return res.status(401).json({ error: 'Invalid refresh token' });
+    }
+    try {
+        const payload = jwt.verify(refreshToken, REFRESH_SECRET);
+        const user = users.find(u => u.id === payload.sub);
+        if (!user) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+        const newAccessToken = generateAccessToken(user);
+        const newRefreshToken = generateRefreshToken(user);
+        refreshTokens.add(newRefreshToken);
+        res.json({
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken
+        });
+    } catch (err) {
+        return res.status(401).json({ error: 'Invalid of expired refresh token'});
+    }
+});
+
+app.post('/api/auth/register', async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({
+            error: 'username and password are required',
+        });
+    }
+    const exists = users.some((u) => u.username === username);
+    if (exists) {
+        return res.status(409).json({
+            error: 'username already exists',
+        });
+    } 
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const user = {
+        id: String(users.length + 1),
+        username,
+        passwordHash,
+    };
+    users.push(user);
+    res.status(201).json({
+        id:user.id,
+        username: user.username,
+    });
+});
 
 let users = [];
 let products = [
@@ -144,7 +228,7 @@ const swaggerOptions = {
             description: 'REST API с jwt, входом и управлением товарами',
         },
         servers: [{ url: `http://localhost:${port}` }],
-        Components: {
+        сomponents: {
             securitySchemes: {
                 bearerAuth: {
                     type: 'http',
@@ -195,8 +279,8 @@ function authMiddleware(req, res, next) {
         });
     }
     try {
-        const payload = jwt.verify(tokenm, JWT_SECRET);
-        req.user = peyload;
+        const payload = jwt.verify(token, ACCESS_SECRET);
+        req.user = payload;
         next();
     } catch (err) {
         return res.status(401).json({
@@ -462,13 +546,19 @@ app.post('/api/auth/login', async (req, res) => {
             first_name: user.first_name,
             last_name: user.last_name
         },
-        JWT_SECRET,
+        ACCESS_SECRET,
         {
             expiresIn: ACCESS_EXPIRES_IN
         }
     );
 
     res.json({ accessToken });
+    const refreshToken = generateRefreshToken(user);
+    refreshTokens.add(refreshToken);
+    res.json({
+        accessToken,
+        refreshToken
+    });
 });
 
 /**
@@ -487,13 +577,13 @@ app.post('/api/auth/login', async (req, res) => {
  */
 
 app.get('/api/auth/me', authMiddleware, (req, res) => {
-    const useeId = req.user.sub;
+    const userId = req.user.sub;
     const user = users.find(u => u.id === userId);
     if (!user) {
         return res.status(404).json({ error: 'User not found' });
     }
     const { hashedPassword, ...userWithoutPassword } = user;
-    req.json(userWithoutPassword);
+    res.json(userWithoutPassword);
 });
 
 /**
@@ -653,7 +743,7 @@ app.put('/api/products/:id', (req, res) => {
     const product = findProductOr404(req.params.id, res);
     if (!product) return;
 
-    const { title, category, description, price } = req.body;
+    const { title, category, description, price, image } = req.body;
 
     if (!title || !category || !description || price === undefined) {
         return res.status(400).json({ error: 'All fields are required' });
