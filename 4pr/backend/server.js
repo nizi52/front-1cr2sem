@@ -70,32 +70,6 @@ app.post('/api/auth/refresh', (req, res) => {
     }
 });
 
-app.post('/api/auth/register', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({
-            error: 'username and password are required',
-        });
-    }
-    const exists = users.some((u) => u.username === username);
-    if (exists) {
-        return res.status(409).json({
-            error: 'username already exists',
-        });
-    } 
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    const user = {
-        id: String(users.length + 1),
-        username,
-        passwordHash,
-    };
-    users.push(user);
-    res.status(201).json({
-        id:user.id,
-        username: user.username,
-    });
-});
 
 let users = [];
 let products = [
@@ -551,14 +525,9 @@ app.post('/api/auth/login', async (req, res) => {
             expiresIn: ACCESS_EXPIRES_IN
         }
     );
-
-    res.json({ accessToken });
     const refreshToken = generateRefreshToken(user);
     refreshTokens.add(refreshToken);
-    res.json({
-        accessToken,
-        refreshToken
-    });
+    res.json({ accessToken, refreshToken });
 });
 
 /**

@@ -3,8 +3,10 @@ import './ProductsPage.css';
 import ProductsList from '../../components/ProductsList';
 import ProductModal from '../../components/ProductModal';
 import { api } from '../../api';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProductsPage() {
+  const { user, logout } = useAuth();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +96,20 @@ export default function ProductsPage() {
       <header className="header">
         <div className="header__inner">
           <div className="brand">🛒 ElectroShop</div>
-          <div className="header__right">Интернет-магазин электроники</div>
+          <div className="header__right">
+            {user && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span>{user.first_name} {user.last_name}</span>
+                <button
+                  className="btn btn--danger"
+                  style={{ padding: '6px 14px', fontSize: 13 }}
+                  onClick={logout}
+                >
+                  Выйти
+                </button>
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
@@ -109,7 +124,7 @@ export default function ProductsPage() {
 
           <div className="filters">
             <label className="filterLabel">Категория:</label>
-            <select 
+            <select
               className="filterSelect"
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
@@ -138,7 +153,7 @@ export default function ProductsPage() {
 
       <footer className="footer">
         <div className="footer__inner">
-          © {new Date().getFullYear()}  Все права защищены.
+          © {new Date().getFullYear()} Все права защищены.
         </div>
       </footer>
 
