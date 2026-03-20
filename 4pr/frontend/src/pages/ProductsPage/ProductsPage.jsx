@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './ProductsPage.css';
 import ProductsList from '../../components/ProductsList';
 import ProductModal from '../../components/ProductModal';
-import UsersPage from '../UsersPage/UsersPage';
+import UsersPage from '../ProductsPage/UserPage';
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 
