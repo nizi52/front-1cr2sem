@@ -10,6 +10,7 @@ export default function RegisterPage({ onGoLogin }) {
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -21,12 +22,10 @@ export default function RegisterPage({ onGoLogin }) {
       setError('Заполните все поля');
       return;
     }
-
     if (password !== confirmPassword) {
       setError('Пароли не совпадают');
       return;
     }
-
     if (password.length < 6) {
       setError('Пароль должен содержать минимум 6 символов');
       return;
@@ -38,7 +37,8 @@ export default function RegisterPage({ onGoLogin }) {
         email.trim().toLowerCase(),
         firstName.trim(),
         lastName.trim(),
-        password
+        password,
+        role
       );
 
       // Автоматически входим после регистрации
@@ -72,63 +72,41 @@ export default function RegisterPage({ onGoLogin }) {
           <div className="authRow">
             <label className="authLabel">
               Имя
-              <input
-                className="authInput"
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Иван"
-                autoFocus
-                disabled={loading}
-              />
+              <input className="authInput" type="text" value={firstName}
+                onChange={e => setFirstName(e.target.value)} placeholder="Иван" autoFocus disabled={loading} />
             </label>
             <label className="authLabel">
               Фамилия
-              <input
-                className="authInput"
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Иванов"
-                disabled={loading}
-              />
+              <input className="authInput" type="text" value={lastName}
+                onChange={e => setLastName(e.target.value)} placeholder="Иванов" disabled={loading} />
             </label>
           </div>
 
           <label className="authLabel">
             Email
-            <input
-              className="authInput"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ivan@example.com"
-              disabled={loading}
-            />
+            <input className="authInput" type="email" value={email}
+              onChange={e => setEmail(e.target.value)} placeholder="ivan@example.com" disabled={loading} />
+          </label>
+
+          <label className="authLabel">
+            Роль
+            <select className="authInput" value={role} onChange={e => setRole(e.target.value)} disabled={loading}>
+              <option value="user">👤 Пользователь</option>
+              <option value="seller">🏪 Продавец</option>
+              <option value="admin">👑 Администратор</option>
+            </select>
           </label>
 
           <label className="authLabel">
             Пароль
-            <input
-              className="authInput"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Минимум 6 символов"
-              disabled={loading}
-            />
+            <input className="authInput" type="password" value={password}
+              onChange={e => setPassword(e.target.value)} placeholder="Минимум 6 символов" disabled={loading} />
           </label>
 
           <label className="authLabel">
             Подтвердите пароль
-            <input
-              className="authInput"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Повторите пароль"
-              disabled={loading}
-            />
+            <input className="authInput" type="password" value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)} placeholder="Повторите пароль" disabled={loading} />
           </label>
 
           {error && <div className="authError">{error}</div>}
@@ -140,9 +118,7 @@ export default function RegisterPage({ onGoLogin }) {
 
         <div className="authSwitch">
           Уже есть аккаунт?{' '}
-          <button className="authLink" onClick={onGoLogin}>
-            Войти
-          </button>
+          <button className="authLink" onClick={onGoLogin}>Войти</button>
         </div>
       </div>
     </div>

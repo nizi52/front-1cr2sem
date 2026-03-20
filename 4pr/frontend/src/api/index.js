@@ -8,7 +8,7 @@ const apiClient = axios.create({
     }
 });
 
-// Interceptor запросов — подставляем accessToken в каждый запрос
+// Interceptor запросов — подставляем accessToken
 apiClient.interceptors.request.use(
     (config) => {
         const accessToken = localStorage.getItem('accessToken');
@@ -31,12 +31,11 @@ apiClient.interceptors.response.use(
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 
-            // Если нет токенов — выходим
             if (!accessToken || !refreshToken) {
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
                 localStorage.removeItem('user');
-                window.location.href = '/login';
+                window.location.href = '/';
                 return Promise.reject(error);
             }
 
@@ -48,7 +47,7 @@ apiClient.interceptors.response.use(
                     localStorage.removeItem('accessToken');
                     localStorage.removeItem('refreshToken');
                     localStorage.removeItem('user');
-                    window.location.href = '/login';
+                    window.location.href = '/';
                     return Promise.reject(error);
                 }
 
@@ -64,7 +63,7 @@ apiClient.interceptors.response.use(
                 localStorage.removeItem('accessToken');
                 localStorage.removeItem('refreshToken');
                 localStorage.removeItem('user');
-                window.location.href = '/login';
+                window.location.href = '/';
                 return Promise.reject(refreshError);
             }
         }
@@ -75,39 +74,46 @@ apiClient.interceptors.response.use(
 
 export const api = {
     // Auth
-    register: async (email, first_name, last_name, password) => {
-        return apiClient.post('/auth/register', { email, first_name, last_name, password });
-    },
-    login: async (email, password) => {
-        return apiClient.post('/auth/login', { email, password });
-    },
-    refresh: async (refreshToken) => {
-        return apiClient.post('/auth/refresh', { refreshToken });
-    },
-    me: async () => {
-        return apiClient.get('/auth/me');
-    },
+    register: (email, first_name, last_name, password, role) =>
+        apiClient.post('/auth/register', { email, first_name, last_name, password, role }),
+
+    login: (email, password) =>
+        apiClient.post('/auth/login', { email, password }),
+
+    refresh: (refreshToken) =>
+        apiClient.post('/auth/refresh', { refreshToken }),
+
+    me: () =>
+        apiClient.get('/auth/me'),
+
+    // Users (admin only)
+    getUsers: () =>
+        apiClient.get('/users'),
+
+    getUserById: (id) =>
+        apiClient.get(`/users/${id}`),
+
+    updateUser: (id, data) =>
+        apiClient.put(`/users/${id}`, data),
+
+    blockUser: (id) =>
+        apiClient.delete(`/users/${id}`),
 
     // Products
-    createProduct: async (product) => {
-        const response = await apiClient.post('/products', product);
-        return response.data;
-    },
-    getProducts: async (category = null) => {
+    createProduct: (product) =>
+        apiClient.post('/products', product),
+
+    getProducts: (category = null) => {
         const params = category ? { category } : {};
-        const response = await apiClient.get('/products', { params });
-        return response.data;
+        return apiClient.get('/products', { params });
     },
-    getProductById: async (id) => {
-        const response = await apiClient.get(`/products/${id}`);
-        return response.data;
-    },
-    updateProduct: async (id, product) => {
-        const response = await apiClient.put(`/products/${id}`, product);
-        return response.data;
-    },
-    deleteProduct: async (id) => {
-        const response = await apiClient.delete(`/products/${id}`);
-        return response.data;
-    }
+
+    getProductById: (id) =>
+        apiClient.get(`/products/${id}`),
+
+    updateProduct: (id, product) =>
+        apiClient.put(`/products/${id}`, product),
+
+    deleteProduct: (id) =>
+        apiClient.delete(`/products/${id}`),
 };

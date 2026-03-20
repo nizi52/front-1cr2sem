@@ -7,7 +7,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Восстанавливаем пользователя из localStorage при загрузке
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
@@ -33,8 +32,14 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // Удобные флаги роли
+  const role = user?.role || null;
+  const isAdmin = role === 'admin';
+  const isSeller = role === 'seller' || role === 'admin';
+  const isUser = !!user; // любой авторизованный пользователь
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, role, isAdmin, isSeller, isUser }}>
       {children}
     </AuthContext.Provider>
   );
